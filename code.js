@@ -6,32 +6,66 @@ function getDetectedGap(nodes) {
 }
 
 /**
- * Pushes siblings of a node in a given direction to make room for a duplicate.
- * Only pushes elements that are aligned with the original node (within its "corridor").
+ * Pushes siblings of a node and its ancestors in a given direction.
  */
 function pushSiblings(originalNode, direction, shiftX, shiftY, excludedIds) {
-  const parent = originalNode.parent;
-  if (!parent) return;
-
-  const margin = 0.5;
-  const nodesToMove = new Set();
+  let current = originalNode;
+  const processed = new Set(excludedIds);
   
-  // Starting target rectangle for the new duplicate
-  let targetX = originalNode.x;
-  let targetY = originalNode.y;
-  if (direction.includes('left')) targetX -= shiftX;
-  else if (direction.includes('right')) targetX += shiftX;
-  if (direction.includes('top')) targetY -= shiftY;
-  else if (direction.includes('bottom')) targetY += shiftY;
-
-  const checkQueue = [{
-    x: targetX,
-    y: targetY,
+  // 1. Initial target: the area the duplicate will occupy
+  let targetRect = {
+    x: originalNode.x + (direction.includes('left') ? -shiftX : (direction.includes('right') ? shiftX : 0)),
+    y: originalNode.y + (direction.includes('top') ? -shiftY : (direction.includes('bottom') ? shiftY : 0)),
     width: originalNode.width,
     height: originalNode.height
-  }];
-  
-  const processed = new Set(excludedIds);
+  };
+
+  while (current.parent && current.parent.type !== 'DOCUMENT') {
+    const parent = current.parent;
+    processed.add(current.id);
+    
+    // Push siblings of 'current' that are hit by 'targetRect'
+    performPush(parent, targetRect, direction, shiftX, shiftY, processed);
+    
+    if (parent.type === 'PAGE') break;
+    
+    // 2. Prepare targetRect for the next level up (siblings of the parent)
+    // The parent will expand/move to fit 'targetRect', so we check what 'parent' will hit.
+    const nextTargetRect = {
+      x: parent.x,
+      y: parent.y,
+      width: parent.width,
+      height: parent.height
+    };
+
+    if (direction.includes('right')) {
+      nextTargetRect.x = parent.x + parent.width;
+      nextTargetRect.width = shiftX;
+    } else if (direction.includes('left')) {
+      nextTargetRect.x = parent.x - shiftX;
+      nextTargetRect.width = shiftX;
+    }
+
+    if (direction.includes('bottom')) {
+      nextTargetRect.y = parent.y + parent.height;
+      nextTargetRect.height = shiftY;
+    } else if (direction.includes('top')) {
+      nextTargetRect.y = parent.y - shiftY;
+      nextTargetRect.height = shiftY;
+    }
+    
+    targetRect = nextTargetRect;
+    current = parent;
+  }
+}
+
+/**
+ * Core logic to check for overlaps and push siblings within a single parent.
+ */
+function performPush(parent, initialRect, direction, shiftX, shiftY, processed) {
+  const margin = 0.5;
+  const nodesToMove = new Set();
+  const checkQueue = [initialRect];
 
   while (checkQueue.length > 0) {
     const rect = checkQueue.shift();
@@ -39,7 +73,6 @@ function pushSiblings(originalNode, direction, shiftX, shiftY, excludedIds) {
     for (const sibling of parent.children) {
       if (processed.has(sibling.id)) continue;
 
-      // Check for overlap with the current rectangle in the collision chain
       const overlaps = (sibling.x < rect.x + rect.width - margin) && 
                        (sibling.x + sibling.width > rect.x + margin) &&
                        (sibling.y < rect.y + rect.height - margin) && 
@@ -49,7 +82,6 @@ function pushSiblings(originalNode, direction, shiftX, shiftY, excludedIds) {
         nodesToMove.add(sibling);
         processed.add(sibling.id);
         
-        // Add this sibling's future position to the queue to check for further collisions
         checkQueue.push({
           x: sibling.x + (direction.includes('left') ? -shiftX : (direction.includes('right') ? shiftX : 0)),
           y: sibling.y + (direction.includes('top') ? -shiftY : (direction.includes('bottom') ? shiftY : 0)),
