@@ -147,26 +147,60 @@ async function performDuplicate(direction, gap, pushEnabled) {
 }
 
 function expandSectionIfNeeded(node) {
-  const parent = node.parent;
-  if (!parent || parent.type !== 'SECTION' || parent.locked) return;
-  const SECTION_PADDING = 80;
-  const resizeParent = (w, h) => {
-    if (typeof parent.resize === 'function') parent.resize(w, h);
-    else if (typeof parent.resizeWithoutConstraints === 'function') parent.resizeWithoutConstraints(w, h);
-  };
-  if (node.x + node.width > parent.width - SECTION_PADDING) resizeParent(node.x + node.width + SECTION_PADDING, parent.height);
-  if (node.y + node.height > parent.height - SECTION_PADDING) resizeParent(parent.width, node.y + node.height + SECTION_PADDING);
-  if (node.x < SECTION_PADDING) {
-    const shift = node.x - SECTION_PADDING;
-    resizeParent(parent.width - shift, parent.height);
-    parent.x += shift;
-    for (const child of parent.children) if (!child.locked) child.x -= shift;
+  let section = node.parent;
+  // Find the Section ancestor
+  while (section && section.type !== 'SECTION' && section.type !== 'PAGE') {
+    section = section.parent;
   }
-  if (node.y < SECTION_PADDING) {
-    const shift = node.y - SECTION_PADDING;
-    resizeParent(parent.width, parent.height - shift);
-    parent.y += shift;
-    for (const child of parent.children) if (!child.locked) child.y -= shift;
+  
+  if (!section || section.type !== 'SECTION' || section.locked) return;
+
+  const PADDING = 100;
+  
+  // Calculate the collective bounds of all children relative to the section origin
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  if (section.children.length === 0) return;
+
+  for (const child of section.children) {
+    minX = Math.min(minX, child.x);
+    minY = Math.min(minY, child.y);
+    maxX = Math.max(maxX, child.x + child.width);
+    maxY = Math.max(maxY, child.y + child.height);
+  }
+
+  // Determine if we need to shift children (if they're too close to the left/top edges)
+  let shiftX = minX < PADDING ? PADDING - minX : 0;
+  let shiftY = minY < PADDING ? PADDING - minY : 0;
+
+  // The required width/height considering the right/bottom-most child and any shift
+  const requiredWidth = maxX + PADDING + shiftX;
+  const requiredHeight = maxY + PADDING + shiftY;
+
+  const newWidth = Math.max(section.width + shiftX, requiredWidth);
+  const newHeight = Math.max(section.height + shiftY, requiredHeight);
+
+  if (newWidth > section.width || newHeight > section.height || shiftX > 0 || shiftY > 0) {
+    const resizeSection = (w, h) => {
+      if (typeof section.resize === 'function') section.resize(w, h);
+      else if (typeof section.resizeWithoutConstraints === 'function') section.resizeWithoutConstraints(w, h);
+    };
+
+    resizeSection(newWidth, newHeight);
+
+    if (shiftX > 0 || shiftY > 0) {
+      section.x -= shiftX;
+      section.y -= shiftY;
+      for (const child of section.children) {
+        if (!child.locked) {
+          child.x += shiftX;
+          child.y += shiftY;
+        }
+      }
+    }
   }
 }
 
