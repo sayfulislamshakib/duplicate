@@ -1,0 +1,31 @@
+{
+  "name": "Duplicate",
+  "id": "1599291164688352807",
+  "api": "1.0.0",
+  "main": "code.js",
+  "capabilities": [],
+  "enableProposedApi": false,
+  "documentAccess": "dynamic-page",
+  "editorType": [
+    "figma"
+  ],
+  "ui": "ui.html",
+  "menu": [
+    { "name": "Right →", "command": "right" },
+    { "name": "Left ←", "command": "left" },
+    { "name": "Top ↑", "command": "top" },
+    { "name": "Bottom ↓", "command": "bottom" },
+    { "separator": true },
+    { "name": "Top Left ↖", "command": "top-left" },
+    { "name": "Top Right ↗", "command": "top-right" },
+    { "name": "Bottom Left ↙", "command": "bottom-left" },
+    { "name": "Bottom Right ↘", "command": "bottom-right" },
+    { "separator": true },
+    { "name": "Open UI", "command": "open_ui" }
+  ],
+  "networkAccess": {
+    "allowedDomains": [
+      "none"
+    ]
+  }
+}

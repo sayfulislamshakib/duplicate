@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    :root {
+      --font-stack: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --bg-color: #ffffff;
+      --text-color: #333333;
+      --border-color: #e5e5e5;
+      --primary-color: #18A0FB;
+      --primary-hover: #0D8DE3;
+      --button-bg: #f0f0f0;
+      --button-hover: #e0e0e0;
+      --radius: 6px;
+    }
+
+    body {
+      font-family: var(--font-stack);
+      padding: 0;
+      margin: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: inline-flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      overflow: hidden;
+      width: fit-content;
+    }
+
+    .container {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .input-row {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      width: 140px;
+      box-sizing: border-box;
+    }
+
+    label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #999;
+      letter-spacing: 0.05em;
+    }
+
+    /* Stepper Styles */
+    .stepper {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      overflow: hidden;
+      height: 28px;
+    }
+
+    .stepper button {
+      width: 28px;
+      height: 100%;
+      border: none;
+      background: #fff;
+      color: #555;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.1s;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .stepper button:hover {
+      background-color: #f5f5f5;
+      color: #000;
+    }
+
+    .stepper button:active {
+      background-color: var(--primary-color);
+      color: #fff;
+    }
+
+    .stepper input {
+      width: 40px;
+      height: 100%;
+      border: none;
+      border-left: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      font-family: var(--font-stack);
+      font-size: 12px;
+      text-align: center;
+      outline: none;
+      color: #333;
+      box-sizing: border-box;
+      appearance: none;
+      padding: 0;
+    }
+    
+    .stepper input::-webkit-inner-spin-button, 
+    .stepper input::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+
+    .dpad {
+      display: grid;
+      grid-template-rows: 40px 40px 40px;
+      grid-template-columns: 40px 40px 40px;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .dir-btn {
+      width: 40px;
+      height: 40px;
+      border: 1px solid #E5E5E5;
+      background-color: #fff;
+      border-radius: var(--radius);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease-out;
+      color: var(--primary-color);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .dir-btn:hover {
+      background-color: rgba(24, 160, 251, 0.08);
+      border-color: var(--primary-color);
+      color: var(--primary-hover);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .dir-btn:active {
+      background-color: var(--primary-hover);
+      color: #fff;
+      transform: translateY(0) scale(0.95);
+      box-shadow: 0 2px 4px rgba(24, 160, 251, 0.1);
+    }
+    
+    .dir-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    #top-left { grid-column: 1; grid-row: 1; }
+    #top { grid-column: 2; grid-row: 1; }
+    #top-right { grid-column: 3; grid-row: 1; }
+    #left { grid-column: 1; grid-row: 2; }
+    #center-placeholder { grid-column: 2; grid-row: 2; display: flex; align-items: center; justify-content: center;}
+    #right { grid-column: 3; grid-row: 2; }
+    #bottom-left { grid-column: 1; grid-row: 3; }
+    #bottom { grid-column: 2; grid-row: 3; }
+    #bottom-right { grid-column: 3; grid-row: 3; }
+
+    .divider {
+      width: 100%;
+      height: 1px;
+      background-color: #f5f5f5;
+    }
+
+    .center-icon {
+        width: 6px;
+        height: 6px;
+        background-color: #ddd;
+        border-radius: 50%;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .checkbox-row label {
+      cursor: pointer;
+      text-transform: none;
+      color: var(--text-color);
+      font-weight: 500;
+      font-size: 12px;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="dpad">
+      <button id="top-left" class="dir-btn"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
+      <button id="top" class="dir-btn"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
+      <button id="top-right" class="dir-btn"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
+      <button id="left" class="dir-btn"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
+      <div id="center-placeholder"><div class="center-icon"></div></div>
+      <button id="right" class="dir-btn"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
+      <button id="bottom-left" class="dir-btn"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
+      <button id="bottom" class="dir-btn"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
+      <button id="bottom-right" class="dir-btn"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
+    </div>
+    <div class="divider"></div>
+    <div class="input-row">
+      <div class="checkbox-row">
+        <input id="auto-detect" type="checkbox" checked>
+        <label for="auto-detect">Auto-detect gap</label>
+      </div>
+      <div id="auto-detect-info" style="font-size: 10px; color: #888; text-align: center; line-height: 1.4; padding: 0 10px;">
+        Large frames use 100px gap, small use 40px.
+      </div>
+      <div id="manual-gap-container" style="display: none; flex-direction: column; align-items: center; gap: 8px; width: 100%;">
+        <label for="gap">Gap</label>
+        <div class="stepper">
+          <button id="minus">−</button>
+          <input id="gap" type="number" value="40" min="0">
+          <button id="plus">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const gapInput = document.getElementById('gap');
+    const autoDetectCheckbox = document.getElementById('auto-detect');
+    const manualContainer = document.getElementById('manual-gap-container');
+    const minusBtn = document.getElementById('minus');
+    const plusBtn = document.getElementById('plus');
+
+    function syncUI() {
+      const isAuto = autoDetectCheckbox.checked;
+      manualContainer.style.display = isAuto ? 'none' : 'flex';
+      document.getElementById('auto-detect-info').style.display = isAuto ? 'block' : 'none';
+    }
+
+    autoDetectCheckbox.onchange = () => {
+      syncUI();
+      parent.postMessage({ pluginMessage: { type: 'toggle-auto-detect', enabled: autoDetectCheckbox.checked } }, '*');
+    };
+
+    function updateGap(change) {
+      if (autoDetectCheckbox.checked) return;
+      let val = parseInt(gapInput.value) || 0;
+      val += change;
+      if (val < 0) val = 0;
+      gapInput.value = val;
+    }
+
+    minusBtn.onclick = () => updateGap(-10);
+    plusBtn.onclick = () => updateGap(10);
+
+    function duplicate(direction) {
+      const gap = parseFloat(gapInput.value) || 0;
+      parent.postMessage({ pluginMessage: { type: 'duplicate', direction, gap, autoDetect: autoDetectCheckbox.checked } }, '*');
+    }
+
+    document.getElementById('top').onclick = () => duplicate('top');
+    document.getElementById('bottom').onclick = () => duplicate('bottom');
+    document.getElementById('left').onclick = () => duplicate('left');
+    document.getElementById('right').onclick = () => duplicate('right');
+    document.getElementById('top-left').onclick = () => duplicate('top-left');
+    document.getElementById('top-right').onclick = () => duplicate('top-right');
+    document.getElementById('bottom-left').onclick = () => duplicate('bottom-left');
+    document.getElementById('bottom-right').onclick = () => duplicate('bottom-right');
+
+    gapInput.onclick = function() { this.select(); };
+
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (msg.type === 'load-settings') {
+        gapInput.value = msg.gap;
+        if (msg.autoDetect !== undefined) autoDetectCheckbox.checked = msg.autoDetect;
+        syncUI();
+      }
+      if (msg.type === 'update-gap' && autoDetectCheckbox.checked) {
+        gapInput.value = msg.gap;
+      }
+    };
+
+    const resizeObserver = new ResizeObserver(() => {
+      parent.postMessage({ pluginMessage: { type: 'resize', width: document.body.offsetWidth, height: document.body.offsetHeight } }, '*');
+    });
+    resizeObserver.observe(document.body);
+  </script>
+</body>
+</html>
