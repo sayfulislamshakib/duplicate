@@ -100,8 +100,46 @@ function performPush(parent, initialRect, direction, shiftX, shiftY, processed) 
   }
 }
 
+/**
+ * Resets a node to a "blank" state: generic frame, no styling, no children.
+ */
+function resetToBlank(node) {
+  // 1. Lock dimensions by switching to manual layout (frame)
+  if ('layoutMode' in node) {
+    node.layoutMode = 'NONE';
+  }
+
+  // 2. Remove all children
+  if ('children' in node) {
+    // Iterate over a copy of the children array to safely remove them
+    [...node.children].forEach(child => child.remove());
+  }
+
+  // 3. Strip styling (Fills, Strokes, Effects)
+  if ('fills' in node) {
+    node.fills = [{
+      type: 'SOLID',
+      color: { r: 1, g: 1, b: 1 },
+      opacity: 1,
+      visible: true
+    }];
+  }
+  if ('strokes' in node) node.strokes = [];
+  if ('effects' in node) node.effects = [];
+
+  // 4. Reset structural properties
+  if ('cornerRadius' in node) node.cornerRadius = 0;
+  
+  // Reset padding and spacing
+  if ('paddingLeft' in node) node.paddingLeft = 0;
+  if ('paddingRight' in node) node.paddingRight = 0;
+  if ('paddingTop' in node) node.paddingTop = 0;
+  if ('paddingBottom' in node) node.paddingBottom = 0;
+  if ('itemSpacing' in node) node.itemSpacing = 0;
+}
+
 // Function to handle the duplication logic
-async function performDuplicate(direction, gap, pushEnabled) {
+async function performDuplicate(direction, gap, pushEnabled, duplicateAsBlank) {
   const selection = figma.currentPage.selection;
 
   if (selection.length === 0) {
@@ -135,6 +173,9 @@ async function performDuplicate(direction, gap, pushEnabled) {
 
       if (isAutoLayout) {
         const clone = node.clone();
+        if (duplicateAsBlank) {
+          resetToBlank(clone);
+        }
         const index = parent.children.indexOf(node);
         let newIndex = index + (direction.includes('right') || direction.includes('bottom') ? 1 : 0);
         if (typeof parent.insertChild === 'function') parent.insertChild(newIndex, clone);
@@ -151,6 +192,9 @@ async function performDuplicate(direction, gap, pushEnabled) {
         }
 
         const clone = node.clone();
+        if (duplicateAsBlank) {
+          resetToBlank(clone);
+        }
         parent.appendChild(clone);
 
         if (direction.includes('left')) clone.x = node.x - shiftX;
@@ -173,8 +217,15 @@ async function performDuplicate(direction, gap, pushEnabled) {
 
   if (newSelection.length > 0) {
     const dirLabel = direction.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
-    if (autoLayoutWarning) figma.notify(`✅ Duplicated. Spacing handled by Auto Layout.`);
-    else figma.notify(`✅ Duplicated ${dirLabel} with ${lastUsedEffectiveGap}px gap.`);
+    
+    let msg = `✅ Duplicated ${dirLabel}`;
+    if (duplicateAsBlank) {
+      msg += " as blank frame";
+    } else {
+      msg += autoLayoutWarning ? " (Auto Layout)" : ` with ${lastUsedEffectiveGap}px gap`;
+    }
+    
+    figma.notify(msg);
   }
 }
 
@@ -238,25 +289,29 @@ function expandSectionIfNeeded(node) {
 
 let isAutoDetectEnabled = true;
 let isPushEnabled = true;
+let isDuplicateAsBlankEnabled = false;
 
 if (figma.command === 'open_ui' || figma.command === '' || figma.command === 'settings') {
-  const height = figma.command === 'settings' ? 200 : 380;
+  const height = figma.command === 'settings' ? 260 : 440; // Increased height for new option
   figma.showUI(__html__, { width: 240, height });
   const initialGap = getDetectedGap(figma.currentPage.selection);
   
   Promise.all([
     figma.clientStorage.getAsync('autoDetect'),
     figma.clientStorage.getAsync('lastUsedGap'),
-    figma.clientStorage.getAsync('pushEnabled')
-  ]).then(([storedAutoDetect, gap, storedPush]) => {
+    figma.clientStorage.getAsync('pushEnabled'),
+    figma.clientStorage.getAsync('duplicateAsBlank')
+  ]).then(([storedAutoDetect, gap, storedPush, storedDuplicateBlank]) => {
     if (storedAutoDetect !== undefined) isAutoDetectEnabled = storedAutoDetect;
     if (storedPush !== undefined) isPushEnabled = storedPush;
+    if (storedDuplicateBlank !== undefined) isDuplicateAsBlankEnabled = storedDuplicateBlank;
     
     figma.ui.postMessage({ 
       type: 'load-settings', 
       gap: gap !== undefined ? gap : initialGap,
       autoDetect: isAutoDetectEnabled,
       push: isPushEnabled,
+      duplicateAsBlank: isDuplicateAsBlankEnabled,
       view: figma.command === 'settings' ? 'settings-only' : 'main'
     });
   });
@@ -264,13 +319,15 @@ if (figma.command === 'open_ui' || figma.command === '' || figma.command === 'se
   Promise.all([
     figma.clientStorage.getAsync('autoDetect'),
     figma.clientStorage.getAsync('lastUsedGap'),
-    figma.clientStorage.getAsync('pushEnabled')
-  ]).then(([storedAutoDetect, gap, storedPush]) => {
+    figma.clientStorage.getAsync('pushEnabled'),
+    figma.clientStorage.getAsync('duplicateAsBlank')
+  ]).then(([storedAutoDetect, gap, storedPush, storedDuplicateBlank]) => {
     const autoDetect = (storedAutoDetect !== undefined) ? storedAutoDetect : true;
     const push = (storedPush !== undefined) ? storedPush : true;
+    const duplicateAsBlank = (storedDuplicateBlank !== undefined) ? storedDuplicateBlank : false;
     const finalGap = autoDetect ? null : (gap !== undefined ? gap : 40);
     
-    performDuplicate(figma.command, finalGap, push).then(() => figma.closePlugin());
+    performDuplicate(figma.command, finalGap, push, duplicateAsBlank).then(() => figma.closePlugin());
   });
 }
 
@@ -296,12 +353,19 @@ figma.ui.onmessage = msg => {
     figma.clientStorage.setAsync('pushEnabled', msg.enabled);
     figma.notify("Settings updated");
   }
+  if (msg.type === 'toggle-duplicate-blank') {
+    isDuplicateAsBlankEnabled = msg.enabled;
+    figma.clientStorage.setAsync('duplicateAsBlank', msg.enabled);
+    figma.notify("Settings updated");
+  }
   if (msg.type === 'duplicate') {
     figma.clientStorage.setAsync('lastUsedGap', msg.gap);
     figma.clientStorage.setAsync('autoDetect', msg.autoDetect);
     figma.clientStorage.setAsync('pushEnabled', msg.push);
+    figma.clientStorage.setAsync('duplicateAsBlank', msg.duplicateAsBlank);
     isAutoDetectEnabled = msg.autoDetect;
     isPushEnabled = msg.push;
-    performDuplicate(msg.direction, msg.autoDetect ? null : msg.gap, msg.push);
+    isDuplicateAsBlankEnabled = msg.duplicateAsBlank;
+    performDuplicate(msg.direction, msg.autoDetect ? null : msg.gap, msg.push, msg.duplicateAsBlank);
   }
 };

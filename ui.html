@@ -312,12 +312,26 @@
           Shift existing elements to avoid overlapping.
         </div>
       </div>
+
+      <div class="blank-container" style="width: 100%;">
+        <div class="checkbox-row" onclick="document.getElementById('duplicate-blank').click()">
+          <span class="label-text">Duplicate as blank</span>
+          <label class="switch" onclick="event.stopPropagation()">
+            <input id="duplicate-blank" type="checkbox">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="subtitle">
+          Create an empty frame with the same dimensions.
+        </div>
+      </div>
     </div>
   </div>
   <script>
     const gapInput = document.getElementById('gap');
     const autoDetectCheckbox = document.getElementById('auto-detect');
     const pushCheckbox = document.getElementById('push-elements');
+    const duplicateBlankCheckbox = document.getElementById('duplicate-blank');
     const manualContainer = document.getElementById('manual-gap-container');
     const minusBtn = document.getElementById('minus');
     const plusBtn = document.getElementById('plus');
@@ -348,6 +362,10 @@
       parent.postMessage({ pluginMessage: { type: 'toggle-push', enabled: pushCheckbox.checked } }, '*');
     };
 
+    duplicateBlankCheckbox.onchange = () => {
+      parent.postMessage({ pluginMessage: { type: 'toggle-duplicate-blank', enabled: duplicateBlankCheckbox.checked } }, '*');
+    };
+
     function updateGap(change) {
       if (autoDetectCheckbox.checked) return;
       let val = parseInt(gapInput.value) || 0;
@@ -366,7 +384,8 @@
         direction, 
         gap, 
         autoDetect: autoDetectCheckbox.checked,
-        push: pushCheckbox.checked
+        push: pushCheckbox.checked,
+        duplicateAsBlank: duplicateBlankCheckbox.checked
       } }, '*');
     }
 
@@ -387,6 +406,7 @@
         gapInput.value = msg.gap;
         if (msg.autoDetect !== undefined) autoDetectCheckbox.checked = msg.autoDetect;
         if (msg.push !== undefined) pushCheckbox.checked = msg.push;
+        if (msg.duplicateAsBlank !== undefined) duplicateBlankCheckbox.checked = msg.duplicateAsBlank;
         
         // Control visibility based on view mode
         if (msg.view === 'settings-only') {
