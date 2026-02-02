@@ -284,11 +284,15 @@ figma.ui.onmessage = msg => {
   if (msg.type === 'toggle-auto-detect') {
     isAutoDetectEnabled = msg.enabled;
     figma.clientStorage.setAsync('autoDetect', msg.enabled);
-    if (isAutoDetectEnabled) figma.ui.postMessage({ type: 'update-gap', gap: getDetectedGap(figma.currentPage.selection) });
+    if (isAutoDetectEnabled) {
+      figma.ui.postMessage({ type: 'update-gap', gap: getDetectedGap(figma.currentPage.selection) });
+    }
+    figma.notify("Settings updated");
   }
   if (msg.type === 'toggle-push') {
     isPushEnabled = msg.enabled;
     figma.clientStorage.setAsync('pushEnabled', msg.enabled);
+    figma.notify("Settings updated");
   }
   if (msg.type === 'duplicate') {
     figma.clientStorage.setAsync('lastUsedGap', msg.gap);
