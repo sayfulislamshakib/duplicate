@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Duplicate — Figma Automation Plugin</title>
+    <style>
+      :root {
+        font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        color-scheme: light;
+        text-rendering: optimizeLegibility;
+        line-height: 1.6;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: radial-gradient(circle at 10% -20%, rgba(59, 130, 246, 0.2), transparent 40%),
+          radial-gradient(circle at 90% 0%, rgba(16, 185, 129, 0.18), transparent 45%),
+          linear-gradient(180deg, #eef2ff 0%, #f8fafc 50%, #ffffff 100%);
+        padding: 2rem 1rem;
+        color: #0f172a;
+      }
+      .page-wrapper {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+      .hero {
+        background: linear-gradient(135deg, #0f172a, #1d4ed8);
+        border-radius: 1.2rem;
+        padding: 3rem;
+        color: #f8fafc;
+        box-shadow: 0 25px 65px rgba(15, 23, 42, 0.35);
+      }
+      .hero h1 {
+        margin: 0;
+        font-size: clamp(2.6rem, 4vw, 3.6rem);
+        line-height: 1.2;
+      }
+      .hero p {
+        margin: 1rem 0 0;
+        font-size: 1.15rem;
+        max-width: 560px;
+        color: rgba(248, 250, 252, 0.85);
+      }
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 2rem;
+      }
+      .hero-actions a {
+        border-radius: 999px;
+        padding: 0.95rem 1.9rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .hero-actions .primary {
+        background: #f8fafc;
+        color: #0f172a;
+        box-shadow: 0 15px 40px rgba(15, 23, 42, 0.3);
+      }
+      .hero-actions .secondary {
+        border: 1px solid rgba(248, 250, 252, 0.65);
+        background: transparent;
+        color: #f8fafc;
+      }
+      .hero-actions a:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 20px 50px rgba(15, 23, 42, 0.35);
+      }
+      section {
+        background: #ffffff;
+        border-radius: 1.1rem;
+        padding: 2rem;
+        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+      }
+      section h2 {
+        margin-top: 0;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+      }
+      .card {
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 0.85rem;
+        padding: 1.25rem;
+        background: #fff;
+        min-height: 160px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+      .card h3 {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+      .card p {
+        margin: 0;
+        color: rgba(15, 23, 42, 0.8);
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.2rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        color: #0f172a;
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        text-transform: uppercase;
+      }
+      ol,
+      ul {
+        margin: 0;
+        padding-left: 1.25rem;
+      }
+      .note {
+        margin-top: 1rem;
+        border-left: 4px solid #3b82f6;
+        padding-left: 0.85rem;
+        color: rgba(15, 23, 42, 0.85);
+      }
+      .download-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem 2rem;
+        border-radius: 999px;
+        border: none;
+        background: #0f172a;
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        box-shadow: 0 20px 60px rgba(15, 23, 42, 0.35);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .download-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 30px 70px rgba(15, 23, 42, 0.45);
+      }
+      @media (max-width: 700px) {
+        body {
+          padding: 1.5rem 1rem;
+        }
+        .hero {
+          padding: 2rem;
+        }
+        .hero-actions {
+          flex-direction: column;
+          align-items: stretch;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-wrapper">
+      <section class="hero">
+        <h1>Duplicate Figma Plugin</h1>
+        <p>
+          Duplicate frames intelligently in any direction with consistent spacing, sibling pushing, and optional blank
+          templates so your design system grows without pushing other layers askew.
+        </p>
+        <div class="hero-actions">
+          <a class="primary" href="https://github.com/sayfulislamshakib/Duplicate/releases" target="_blank" rel="noreferrer">
+            Download latest release
+          </a>
+          <a class="secondary" href="#usage">See how it works</a>
+        </div>
+      </section>
+
+      <section>
+        <h2>Key Capabilities</h2>
+        <div class="grid">
+          <article class="card">
+            <div class="pill">Gap Control</div>
+            <p>
+              Auto-detect spacing from the first frame (40px standard / 100px for wide boards) or type a custom gap when
+              Auto Detect is toggled off.
+            </p>
+          </article>
+          <article class="card">
+            <div class="pill">Push Mode</div>
+            <p>
+              Siblings that would overlap the duplicate move in the same direction, so no manual nudging is required.
+            </p>
+          </article>
+          <article class="card">
+            <div class="pill">Blank Copies</div>
+            <p>
+              Create clean starter frames with no fills, strokes, effects, children, or layout constraints for flexible
+              prototyping.
+            </p>
+          </article>
+          <article class="card">
+            <div class="pill">Auto Layout Safe</div>
+            <p>
+              Auto Layout parents insert clones inline while other sections expand safely to preserve padding around new
+              frames.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="usage">
+        <h2>How to Use</h2>
+        <ol>
+          <li>Select one or more frames or artboards you want to duplicate.</li>
+          <li>Open <strong>Plugins ▸ Development ▸ Duplicate</strong> in Figma.</li>
+          <li>Choose a direction (Right, Left, Top, Bottom, or any diagonal) to place the copy.</li>
+          <li>Toggle settings for auto gap detection, sibling push, or blank duplicates.</li>
+          <li>Watch the notification to confirm the gap, Auto Layout handling, and blank clone status.</li>
+        </ol>
+        <p class="note">
+          Settings persist via <code>figma.clientStorage</code>, so your preferred gap and toggles survive between launches.
+        </p>
+      </section>
+
+      <section>
+        <h2>Settings Overview</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>Auto Detect Gap</h3>
+            <p>Enabled by default—infers spacing from the selection width. Disable it to manually type a gap value.</p>
+          </article>
+          <article class="card">
+            <h3>Push Siblings</h3>
+            <p>Shifts neighbors along the duplication axis so layouts stay tidy without extra effort.</p>
+          </article>
+          <article class="card">
+            <h3>Duplicate as Blank</h3>
+            <p>Leaves behind structure only—no styles, children, or layout, so you can build fresh content beside the original.</p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Development Notes</h2>
+        <ol>
+          <li>
+            Import via <em>Plugins ▸ Development ▸ Import plugin from manifest...</em> and point to this repo's
+            <code>manifest.json</code>.
+          </li>
+          <li>Tweak duplication logic, sibling pushing, and notifications inside <code>code.js</code>.</li>
+          <li>Customize the experience through plain HTML/CSS/JS in <code>ui.html</code> and reload the plugin to preview.</li>
+          <li>Keep <code>manifest.json</code> in sync when renaming entry files or adding an <code>assets/</code> folder.</li>
+          <li>Run the plugin directly in Figma for validation—use <code>figma.notify</code> or console logs for debugging.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Useful Notes</h2>
+        <ul>
+          <li><code>figma.clientStorage</code> keeps the last gap, push toggle, and blank toggle saved between runs.</li>
+          <li>Auto Layout parents insert clones inline and skip sibling pushes by design.</li>
+          <li><code>expandSectionIfNeeded</code> keeps Section nodes padded after you add new frames.</li>
+        </ul>
+        <p>Feel free to refine the UI, add tests (Jest + <code>figma-js</code> mocks), or adjust workflows if your process changes.</p>
+      </section>
+    </div>
+  </body>
+</html>
