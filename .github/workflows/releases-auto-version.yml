@@ -183,7 +183,7 @@ jobs:
           # Only ship manifest-referenced files + optional assets folder.
           [ -d assets ] && cp -R assets release/ || true
 
-          ZIP="plugin-${TAG}.zip"
+          ZIP="duplicate-${TAG}.zip"
           (cd release && zip -r "../$ZIP" .)
 
           echo "Created $ZIP"
@@ -237,5 +237,5 @@ jobs:
           tag_name: ${{ steps.compute.outputs.new_tag }}
           name: ${{ steps.compute.outputs.new_tag }}
           body_path: release_notes.txt
-          files: |
-            plugin-*.zip
+            files: |
+              duplicate-*.zip

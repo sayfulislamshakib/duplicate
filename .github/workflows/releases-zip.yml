@@ -48,7 +48,7 @@ jobs:
           [ -d assets ] && cp -R assets release/ || true
 
           TAG="${GITHUB_REF_NAME}"
-          ZIP="plugin-${TAG}.zip"
+          ZIP="duplicate-${TAG}.zip"
           (cd release && zip -r "../$ZIP" .)
 
           echo "Created $ZIP"
@@ -88,4 +88,4 @@ jobs:
         with:
           body_path: release_notes.txt
           files: |
-            plugin-*.zip
+            duplicate-*.zip
