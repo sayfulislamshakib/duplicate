@@ -239,8 +239,9 @@ function expandSectionIfNeeded(node) {
 let isAutoDetectEnabled = true;
 let isPushEnabled = true;
 
-if (figma.command === 'open_ui' || figma.command === '') {
-  figma.showUI(__html__, { width: 240, height: 380 });
+if (figma.command === 'open_ui' || figma.command === '' || figma.command === 'settings') {
+  const height = figma.command === 'settings' ? 200 : 380;
+  figma.showUI(__html__, { width: 240, height });
   const initialGap = getDetectedGap(figma.currentPage.selection);
   
   Promise.all([
@@ -255,7 +256,8 @@ if (figma.command === 'open_ui' || figma.command === '') {
       type: 'load-settings', 
       gap: gap !== undefined ? gap : initialGap,
       autoDetect: isAutoDetectEnabled,
-      push: isPushEnabled
+      push: isPushEnabled,
+      view: figma.command === 'settings' ? 'settings-only' : 'main'
     });
   });
 } else {

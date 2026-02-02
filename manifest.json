@@ -21,7 +21,9 @@
     { "name": "Bottom Left ↙", "command": "bottom-left" },
     { "name": "Bottom Right ↘", "command": "bottom-right" },
     { "separator": true },
-    { "name": "Open UI", "command": "open_ui" }
+    { "name": "Open UI", "command": "open_ui" },
+    { "separator": true },
+    { "name": "Settings", "command": "settings" }
   ],
   "networkAccess": {
     "allowedDomains": [

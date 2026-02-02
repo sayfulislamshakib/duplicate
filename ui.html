@@ -24,7 +24,7 @@
       flex-direction: column;
       box-sizing: border-box;
       overflow: hidden;
-      width: fit-content;
+      width: 100%;
     }
 
     .container {
@@ -33,6 +33,8 @@
       flex-direction: column;
       align-items: center;
       gap: 16px;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .input-row {
@@ -264,7 +266,7 @@
 </head>
 <body>
   <div class="container">
-    <div class="dpad">
+    <div id="dpad-container" class="dpad" style="display: none;">
       <button id="top-left" class="dir-btn" title="Top Left"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
       <button id="top" class="dir-btn" title="Top"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
       <button id="top-right" class="dir-btn" title="Top Right"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
@@ -275,7 +277,7 @@
       <button id="bottom" class="dir-btn" title="Bottom"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
       <button id="bottom-right" class="dir-btn" title="Bottom Right"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
     </div>
-    <div class="divider"></div>
+    <div id="divider" class="divider" style="display: none;"></div>
     <div class="input-row">
       <div class="auto-detect-container" style="width: 100%;">
         <div class="checkbox-row" onclick="document.getElementById('auto-detect').click()">
@@ -319,11 +321,22 @@
     const manualContainer = document.getElementById('manual-gap-container');
     const minusBtn = document.getElementById('minus');
     const plusBtn = document.getElementById('plus');
+    const dpadContainer = document.getElementById('dpad-container');
+    const divider = document.getElementById('divider');
+    let settingsLoaded = false;
 
     function syncUI() {
       const isAuto = autoDetectCheckbox.checked;
       manualContainer.style.display = isAuto ? 'none' : 'flex';
       document.getElementById('auto-detect-info').style.display = isAuto ? 'block' : 'none';
+      triggerResize();
+    }
+
+    function triggerResize() {
+      if (!settingsLoaded) return;
+      setTimeout(() => {
+        parent.postMessage({ pluginMessage: { type: 'resize', width: document.body.offsetWidth, height: document.body.offsetHeight } }, '*');
+      }, 50);
     }
 
     autoDetectCheckbox.onchange = () => {
@@ -374,6 +387,17 @@
         gapInput.value = msg.gap;
         if (msg.autoDetect !== undefined) autoDetectCheckbox.checked = msg.autoDetect;
         if (msg.push !== undefined) pushCheckbox.checked = msg.push;
+        
+        // Control visibility based on view mode
+        if (msg.view === 'settings-only') {
+          dpadContainer.style.display = 'none';
+          divider.style.display = 'none';
+        } else {
+          dpadContainer.style.display = 'grid';
+          divider.style.display = 'block';
+        }
+        
+        settingsLoaded = true;
         syncUI();
       }
       if (msg.type === 'update-gap' && autoDetectCheckbox.checked) {
@@ -382,7 +406,7 @@
     };
 
     const resizeObserver = new ResizeObserver(() => {
-      parent.postMessage({ pluginMessage: { type: 'resize', width: document.body.offsetWidth, height: document.body.offsetHeight } }, '*');
+      triggerResize();
     });
     resizeObserver.observe(document.body);
   </script>
