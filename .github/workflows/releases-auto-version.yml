@@ -237,5 +237,5 @@ jobs:
           tag_name: ${{ steps.compute.outputs.new_tag }}
           name: ${{ steps.compute.outputs.new_tag }}
           body_path: release_notes.txt
-            files: |
-              duplicate-*.zip
+          files: |
+            duplicate-*.zip
